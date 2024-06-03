@@ -227,4 +227,46 @@ def get_test_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
 
     return cifar10_test_loader
 
+def get_imagenet_train_dataloader(batch_size=256, num_workers=4):
+    """ return ImageNet training dataloader
+    Args:
+        data_dir: path to ImageNet dataset
+        batch_size: dataloader batchsize
+        num_workers: dataloader num_works
+    Returns: dataloader: torch dataloader object
+    """
+    transform_train = transforms.Compose([
+        transforms.RandomResizedCrop(224),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+    
+    train_dataset = torchvision.datasets.ImageNet(root='./data', split='train', transform=transform_train)
+    
+    train_loader = DataLoader(
+        train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+    
+    return train_loader
 
+def get_imagenet_test_dataloader(batch_size=256, num_workers=4):
+    """ return ImageNet test dataloader
+    Args:
+        data_dir: path to ImageNet dataset
+        batch_size: dataloader batchsize
+        num_workers: dataloader num_works
+    Returns: dataloader: torch dataloader object
+    """
+    transform_test = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+    
+    test_dataset = torchvision.datasets.ImageNet(root='./data', split='val', transform=transform_test)
+    
+    test_loader = DataLoader(
+        test_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers, pin_memory=True)
+    
+    return test_loader
