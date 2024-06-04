@@ -47,7 +47,7 @@ def train_one_epoch(model, criterion,
 
 def train_one_epoch_distillation(teacher, student, criterion,
                     data_loader, optimizer,
-                    device: torch.device, epoch, alpha=1.0, temp=1.0):
+                    device: torch.device, epoch, alpha=0.5, temp=2.0):
     teacher.eval()
     student.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
@@ -62,9 +62,10 @@ def train_one_epoch_distillation(teacher, student, criterion,
            
         with torch.cuda.amp.autocast():
             outputs = student(samples)
-            outputs_teacher = teacher(samples)
-            
-            # Imeplemet knowledge distillation loss here
+            with torch.no_grad():
+                outputs_teacher = teacher(samples)
+
+            # Implement knowledge distillation loss here
             loss_ce = criterion(outputs, targets)
             loss_kd = kl_loss(
                 F.log_softmax(outputs / temp, dim=1),
