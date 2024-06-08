@@ -63,6 +63,9 @@ def train_one_epoch_distillation(teacher, student, criterion,
     print_freq = 100
     kl_loss = torch.nn.KLDivLoss(reduction="batchmean")
 
+    total_correct = 0
+    total_samples = 0
+
     for samples, targets in metric_logger.log_every(data_loader, print_freq, header):
         samples = samples.to(device, non_blocking=True)
         targets = targets.to(device, non_blocking=True)
@@ -95,6 +98,12 @@ def train_one_epoch_distillation(teacher, student, criterion,
         torch.cuda.synchronize()
         metric_logger.update(loss=loss_value)
 
+        _, predicted = outputs.max(1)
+        total_correct += predicted.eq(targets).sum().item()
+        total_samples += targets.size(0)
+
+    accuracy = 100.0 * total_correct / total_samples
+    print(f"Epoch: [{epoch}] Training Accuracy: {accuracy:.2f}%")
     print("Averaged stats:", metric_logger)
     return {k: meter.global_avg for k, meter in metric_logger.meters.items()}
 
