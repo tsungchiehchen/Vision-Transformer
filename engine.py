@@ -1,4 +1,3 @@
-
 import math
 import sys
 from typing import Iterable, Optional
@@ -19,6 +18,9 @@ def train_one_epoch(model, criterion,
     metric_logger = utils.MetricLogger(delimiter="  ")
     header = 'Epoch: [{}]'.format(epoch)
     print_freq = 100
+
+    total_correct = 0
+    total_samples = 0
 
     for samples, targets in metric_logger.log_every(data_loader, print_freq, header):
         samples = samples.to(device, non_blocking=True)
@@ -42,6 +44,12 @@ def train_one_epoch(model, criterion,
         torch.cuda.synchronize()
         metric_logger.update(loss=loss_value)
 
+        _, predicted = outputs.max(1)
+        total_correct += predicted.eq(targets).sum().item()
+        total_samples += targets.size(0)
+
+    accuracy = 100.0 * total_correct / total_samples
+    print(f"Epoch: [{epoch}] Training Accuracy: {accuracy:.2f}%")
     print("Averaged stats:", metric_logger)
     return {k: meter.global_avg for k, meter in metric_logger.meters.items()}
 
